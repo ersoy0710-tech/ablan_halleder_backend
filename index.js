@@ -1,6 +1,11 @@
 const express = require("express");
 const app = express();
 
+require('dotenv/config');
+
+const db = require("./src/db/db.js")
+db.testConnection()
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.set('trust proxy', 1);
@@ -8,7 +13,6 @@ app.set('trust proxy', 1);
 const authRouter = require("./src/router/auth_router");
 
 app.use("/", authRouter);
-
 
 var serverPORT = process.env.PORT || 3000;
 app.listen(serverPORT, () => {
