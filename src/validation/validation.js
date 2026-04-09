@@ -1,5 +1,53 @@
 const { body, validationResult } = require('express-validator');
 
+const adreslerimValidationRules = [
+  body('musteriId')
+    .isUUID()
+    .withMessage('Geçerli bir müşteri ID formatı giriniz.'),
+]
+
+const talepOlusturValidationRules = [
+  body('musteriId')
+    .isUUID()
+    .withMessage('Geçerli bir müşteri ID formatı giriniz.'),
+  
+  body('adresId')
+    .isUUID()
+    .withMessage('Geçerli bir adres ID formatı giriniz.'),
+
+  body('baslik')
+    .trim()
+    .notEmpty()
+    .withMessage('Başlık boş bırakılamaz.')
+    .isLength({ max: 100 })
+    .withMessage('Başlık en fazla 100 karakter olabilir.'),
+
+  body('aciklama')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 })
+    .withMessage('Açıklama çok uzun (Maksimum 1000 karakter).'),
+
+  body('alan')
+    .isInt({ min: 1 })
+    .withMessage('Alan (m²) 0\'dan büyük bir sayı olmalıdır.'),
+
+  body('petVarMi')
+    .isBoolean()
+    .withMessage('Evcil hayvan bilgisi true veya false olmalıdır.'),
+
+  body('planlananTarih')
+    .isISO8601()
+    .withMessage('Geçerli bir başlangıç tarihi giriniz (ISO8601 formatında).')
+    .toDate()
+    .custom((value) => {
+      if (new Date(value) < new Date()) {
+        throw new Error('Başlangıç tarihi geçmiş bir zaman olamaz.');
+      }
+      return true;
+    }),
+]
+
 const kayitOlValidationRules = [
   body('rol')
     .notEmpty()
@@ -51,6 +99,8 @@ const validate = (req, res, next) => {
 };
 
 module.exports = {
+    adreslerimValidationRules,
+    talepOlusturValidationRules,
     kayitOlValidationRules,
     girisYapValidationRules,
     validate
