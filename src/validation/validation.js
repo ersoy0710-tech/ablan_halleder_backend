@@ -1,9 +1,57 @@
 const { body, validationResult } = require('express-validator');
 
+const adresEkleValidationRules = [
+  body('musteriId')
+    .isUUID()
+    .withMessage('Geçerli bir müşteri giriniz.'),
+  
+  body('baslik')
+    .trim()
+    .notEmpty()
+    .withMessage('Başlık boş bırakılamaz.')
+    .isLength({ max: 100 })
+    .withMessage('Başlık en fazla 100 karakter olabilir.'),
+
+  body('adres')
+    .trim()
+    .notEmpty()
+    .withMessage('Açık adres alanı boş bırakılamaz.')
+    .isLength({ min: 10, max: 500 })
+    .withMessage('Adres çok kısa veya çok uzun (10-500 karakter).'),
+
+  body('ilId')
+    .notEmpty()
+    .withMessage('İl seçimi zorunludur.')
+    .isInt({ min: 1 })
+    .withMessage('Geçerli bir il giriniz.'),
+
+  body('ilceId')
+    .notEmpty()
+    .withMessage('İlçe seçimi zorunludur.')
+    .isInt({ min: 1 })
+    .withMessage('Geçerli bir ilçe giriniz.')
+]
+
 const adreslerimValidationRules = [
   body('musteriId')
     .isUUID()
-    .withMessage('Geçerli bir müşteri ID formatı giriniz.'),
+    .withMessage('Geçerli bir müşteri giriniz.'),
+]
+
+const adresSilValidationRules = [
+  body('musteriId')
+    .isUUID()
+    .withMessage('Geçerli bir müşteri giriniz.'),
+
+  body('adresId')
+    .isUUID()
+    .withMessage('Geçerli bir adres giriniz.'),
+]
+
+const taleplerimValidationRules = [
+  body('musteriId')
+    .isUUID()
+    .withMessage('Geçerli bir müşteri giriniz.'),
 ]
 
 const talepOlusturValidationRules = [
@@ -99,7 +147,11 @@ const validate = (req, res, next) => {
 };
 
 module.exports = {
+    adresEkleValidationRules,
     adreslerimValidationRules,
+    adresSilValidationRules,
+
+    taleplerimValidationRules,
     talepOlusturValidationRules,
     kayitOlValidationRules,
     girisYapValidationRules,

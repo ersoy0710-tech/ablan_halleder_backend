@@ -18,7 +18,9 @@ pool.on('error', (err) => {
 
 const testConnection = async () => {
   try {
+    const client = await pool.connect();
     console.log('Veritabanına bağlandı.');
+    client.release();
   } catch (err) {
     console.error('Veritabanına bağlanılamadı!', err.message);
     process.exit(-1);
