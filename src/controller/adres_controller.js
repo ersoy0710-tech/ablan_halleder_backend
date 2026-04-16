@@ -1,8 +1,8 @@
 const db = require("../db/db.js")
 
-const adresEkle = async (req, res, next) => {
+const adresEkle = async(req, res, next) => {
     const { musteriId, baslik, adres, ilId, ilceId } = req.body;
-    
+
     try {
         const sorgu = `INSERT INTO addresses (user_id, label, address_line, city_id, district_id, created_at)
                        VALUES ($1, $2, $3, $4, $5, NOW())
@@ -16,14 +16,12 @@ const adresEkle = async (req, res, next) => {
                 success: true,
                 message: 'ADRES EKLENDİ.',
             });
-        }
-        else {
+        } else {
             throw new Error('Adres eklenemedi!');
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -31,9 +29,9 @@ const adresEkle = async (req, res, next) => {
     }
 }
 
-const adreslerim = async (req, res, next) => {
+const adreslerim = async(req, res, next) => {
     const { musteriId } = req.body;
-    
+
     try {
         const sorgu = `SELECT * FROM addresses WHERE user_id = $1`;
 
@@ -51,10 +49,9 @@ const adreslerim = async (req, res, next) => {
             message: '',
             data: adresler
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -62,9 +59,9 @@ const adreslerim = async (req, res, next) => {
     }
 }
 
-const adresSil = async (req, res, next) => {
+const adresSil = async(req, res, next) => {
     const { musteriId, adresId } = req.body;
-    
+
     try {
         const sorgu = `DELETE FROM addresses WHERE user_id = $1 AND id = $2
                        RETURNING *`;
@@ -77,14 +74,12 @@ const adresSil = async (req, res, next) => {
                 success: true,
                 message: 'ADRES SİLİNDİ.',
             });
-        }
-        else {
+        } else {
             throw new Error('Adres silinemedi!');
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -92,7 +87,7 @@ const adresSil = async (req, res, next) => {
     }
 }
 
-const iller = async (req, res, next) => {
+const iller = async(req, res, next) => {
     try {
         const sorgu = `SELECT * FROM cities`;
         const sonuc = await db.query(sorgu);
@@ -107,10 +102,9 @@ const iller = async (req, res, next) => {
             message: '',
             data: iller
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -118,7 +112,7 @@ const iller = async (req, res, next) => {
     }
 }
 
-const ilceler = async (req, res, next) => {
+const ilceler = async(req, res, next) => {
     const { ilId } = req.body;
 
     try {
@@ -136,10 +130,9 @@ const ilceler = async (req, res, next) => {
             message: '',
             data: iller
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
