@@ -18,14 +18,12 @@ const adresEkle = async (req, res, next) => {
                 success: true,
                 message: 'ADRES EKLENDİ.',
             });
-        }
-        else {
+        } else {
             throw new Error('Adres eklenemedi!');
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -53,10 +51,9 @@ const adreslerim = async (req, res, next) => {
             message: '',
             data: adresler
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -81,14 +78,12 @@ const adresSil = async (req, res, next) => {
                 success: true,
                 message: 'ADRES SİLİNDİ.',
             });
-        }
-        else {
+        } else {
             throw new Error('Adres silinemedi!');
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -96,7 +91,7 @@ const adresSil = async (req, res, next) => {
     }
 }
 
-const iller = async (req, res, next) => {
+const iller = async(req, res, next) => {
     try {
         const sorgu = `SELECT * FROM cities`;
         const sonuc = await db.query(sorgu);
@@ -111,10 +106,9 @@ const iller = async (req, res, next) => {
             message: '',
             data: iller
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -122,7 +116,7 @@ const iller = async (req, res, next) => {
     }
 }
 
-const ilceler = async (req, res, next) => {
+const ilceler = async(req, res, next) => {
     const { ilId } = req.body;
 
     try {
@@ -140,10 +134,9 @@ const ilceler = async (req, res, next) => {
             message: '',
             data: iller
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'

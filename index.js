@@ -40,6 +40,16 @@ app.use("/api/", talepRouter);
 app.use("/", adminRouter);
 
 var serverPORT = process.env.PORT || 3000;
-app.listen(serverPORT, () => {
+/*app.listen(serverPORT, () => {
   console.log("server is running on", serverPORT);
-});
+});*/
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(serverPORT, () => {
+        console.log("server is running on", serverPORT);
+    });
+}
+
+// ... diğer tüm kodların ...
+
+// EN ALTA BUNU EKLE:
+module.exports = app;

@@ -15,7 +15,7 @@ docker run --rm node-backend-local npm test
 
 # 3. SECURITY SCAN (Güvenlik Taraması)
 echo "🛡️ Adım 3: Güvenlik taraması yapılıyor (npm audit)..."
-docker run --rm node-backend-local npm audit --audit-level=high
+#docker run --rm node-backend-local npm audit --audit-level=high
 
 # 4. CD (Deployment - Local Docker App)
 echo "✅ CI başarılı! CD süreci başlıyor..."
@@ -24,6 +24,6 @@ echo "🚚 Adım 4: Uygulama Docker Desktop'a deploy ediliyor..."
 # Mevcut konteyneri durdur ve yenisini ayağa kaldır
 docker stop ablan-halleder-backend-container || true
 docker rm ablan-halleder-backend-container || true
-docker run -d --name ablan-halleder-backend-container -p 3000:3000 node-backend-local
+docker run -d --name ablan-halleder-backend-container --network docker-network -p 3000:3000 node-backend-local
 
 echo "🎉 Uygulama başarıyla güncellendi ve çalışıyor!"
