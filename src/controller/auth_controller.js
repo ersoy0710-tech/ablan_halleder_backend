@@ -1,5 +1,7 @@
 const db = require("../db/db.js")
 
+const { generateAuthToken } = require("../common/jwt.js")
+
 const kayitOl = async (req, res, next) => {
     const { rol, adSoyad, email, telefon, sifre } = req.body;
     
@@ -15,14 +17,7 @@ const kayitOl = async (req, res, next) => {
         if (sonuc.rows.length > 0) {
             return res.status(200).json({
                 success: true,
-                message: 'Kullanıcı başarıyla oluşturuldu.',
-                data: {
-                    "id": sonuc.rows[0]["id"],
-                    "rol": sonuc.rows[0]["role"],
-                    "adSoyad": sonuc.rows[0]["full_name"],
-                    "email": sonuc.rows[0]["email"],
-                    "phone": sonuc.rows[0]["phone"]
-                }
+                message: 'Kullanıcı başarıyla oluşturuldu.'
             });
         }
         else {
@@ -51,11 +46,16 @@ const girisYap = async (req, res, next) => {
         const sonuc = await db.query(sorgu, degerler);
 
         if (sonuc.rows.length > 0) {
+            const generatedAuthToken = generateAuthToken(sonuc.rows[0]["id"]);
+            if (generatedAuthToken === null) {
+                throw new Error();
+            }
+
             return res.status(200).json({
                 success: true,
                 message: '',
                 data: {
-                    "id": sonuc.rows[0]["id"],
+                    "authToken": generatedAuthToken,
                     "rol": sonuc.rows[0]["role"],
                     "adSoyad": sonuc.rows[0]["full_name"],
                     "email": sonuc.rows[0]["email"],

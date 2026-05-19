@@ -1,0 +1,72 @@
+<% const statusLabelMap = {
+    draft: 'Taslak',
+    published: 'Yayınlandı',
+    assigned: 'Atandı',
+    in_progress: 'Devam Ediyor',
+    awaiting_approval: 'Onay Bekliyor',
+    completed: 'Tamamlandı',
+    canceled: 'İptal Edildi'
+};
+const statusClassMap = {
+    draft: 'badge-secondary',
+    published: 'badge-primary',
+    assigned: 'badge-info',
+    in_progress: 'badge-warning',
+    awaiting_approval: 'badge-dark',
+    completed: 'badge-success',
+    canceled: 'badge-danger'
+}; %>
+
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Talepler</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Müşteri</th>
+                            <th>Konum</th>
+                            <th>Açıklama</th>
+                            <th>Alan (m²)</th>
+                            <th>Evcil Hayvan</th>
+                            <th>Planlanan Tarih</th>
+                            <th>Durum</th>
+                            <th>Oluşturma</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% requests.forEach(request => { %>
+                        <tr>
+                            <td><%- request["title"] %></td>
+                            <td><%- request["customer"] %></td>
+                            <td><%- request["address"] %></td>
+                            <td><%- request["description"] %></td>
+                            <td><%- request["area_sqm"] %></td>
+                            <td><%- request["has_pets"] ? 'Evet' : 'Hayır' %></td>
+                            <td><%- request["scheduled_start"] %></td>
+                            <td>
+                                <% const statusKey = request["status"];
+                                   const statusLabel = statusLabelMap[statusKey] || statusKey;
+                                   const statusClass = statusClassMap[statusKey] || 'badge-secondary'; %>
+                                <span class="badge badge-pill <%= statusClass %>">
+                                    <%= statusLabel %>
+                                </span>
+                            </td>
+                            <td><%- request["created_at"] %></td>
+                            <td>
+                                <a href="/requests/<%- request["id"] %>" class="btn btn-sm btn-primary">
+                                    Gör
+                                </a>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

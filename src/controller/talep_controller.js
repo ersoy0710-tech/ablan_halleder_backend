@@ -1,14 +1,16 @@
 const db = require("../db/db.js")
 
+const { verifyAuthToken } = require("../common/jwt.js")
+
 const taleplerim = async (req, res, next) => {
-    const { musteriId } = req.body;
-    
     try {
+        const userId = req.userId;
+
         const sorgu = `SELECT S.id, S.title, S.description, S.area_sqm, S.has_pets, (S.scheduled_start AT TIME ZONE 'Europe/Istanbul') scheduled_start, S.status
                        FROM service_requests S
                        WHERE S.customer_id = $1`;
 
-        const degerler = [musteriId];
+        const degerler = [userId];
         const sonuc = await db.query(sorgu, degerler);
         
         const taleplerim = sonuc.rows.map(item => ({

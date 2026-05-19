@@ -1,0 +1,82 @@
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Talep Detayı</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <% if (!request) { %>
+                <div class="alert alert-warning">
+                    <%= message || 'Talep bulunamadı.' %>
+                </div>
+            <% } else { %>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">ID</dt>
+                            <dd class="col-sm-8"><%- request.id %></dd>
+
+                            <dt class="col-sm-4">Müşteri</dt>
+                            <dd class="col-sm-8"><%- request.customer %></dd>
+
+                            <dt class="col-sm-4">Adres</dt>
+                            <dd class="col-sm-8"><%- request.address %></dd>
+
+                            <dt class="col-sm-4">Başlık</dt>
+                            <dd class="col-sm-8"><%- request.title %></dd>
+
+                            <dt class="col-sm-4">Status</dt>
+                            <dd class="col-sm-8">
+                                <% const statusLabelMap = {
+                                    draft: 'Taslak',
+                                    published: 'Yayınlandı',
+                                    assigned: 'Atandı',
+                                    in_progress: 'Devam Ediyor',
+                                    awaiting_approval: 'Onay Bekliyor',
+                                    completed: 'Tamamlandı',
+                                    canceled: 'İptal Edildi'
+                                };
+                                const statusClassMap = {
+                                    draft: 'badge-secondary',
+                                    published: 'badge-primary',
+                                    assigned: 'badge-info',
+                                    in_progress: 'badge-warning',
+                                    awaiting_approval: 'badge-dark',
+                                    completed: 'badge-success',
+                                    canceled: 'badge-danger'
+                                };
+                                const statusKey = request.status;
+                                const statusLabel = statusLabelMap[statusKey] || statusKey;
+                                const statusClass = statusClassMap[statusKey] || 'badge-secondary'; %>
+                                <span class="badge badge-pill <%= statusClass %>"><%= statusLabel %></span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Alan (m²)</dt>
+                            <dd class="col-sm-8"><%- request.area_sqm %></dd>
+
+                            <dt class="col-sm-4">Evcil Hayvan</dt>
+                            <dd class="col-sm-8"><%- request.has_pets ? 'Evet' : 'Hayır' %></dd>
+
+                            <dt class="col-sm-4">Planlanan Tarih</dt>
+                            <dd class="col-sm-8"><%- request.scheduled_start %></dd>
+
+                            <dt class="col-sm-4">Oluşturma</dt>
+                            <dd class="col-sm-8"><%- request.created_at %></dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">Detaylar</div>
+                    <div class="card-body">
+                        <p><strong>Açıklama:</strong></p>
+                        <p><%- request.description %></p>
+                    </div>
+                </div>
+            <% } %>
+
+            <a href="/requests" class="btn btn-secondary mt-3">Geri Dön</a>
+        </div>
+    </div>
+</div>

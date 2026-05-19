@@ -1,14 +1,16 @@
 const db = require("../db/db.js")
 
 const adresEkle = async (req, res, next) => {
-    const { musteriId, baslik, adres, ilId, ilceId } = req.body;
+    const { baslik, adres, ilId, ilceId } = req.body;
     
     try {
+        const userId = req.userId;
+
         const sorgu = `INSERT INTO addresses (user_id, label, address_line, city_id, district_id, created_at)
                        VALUES ($1, $2, $3, $4, $5, NOW())
                        RETURNING *`;
 
-        const degerler = [musteriId, baslik, adres, ilId, ilceId];
+        const degerler = [userId, baslik, adres, ilId, ilceId];
         const sonuc = await db.query(sorgu, degerler);
 
         if (sonuc.rows.length > 0) {
@@ -32,12 +34,12 @@ const adresEkle = async (req, res, next) => {
 }
 
 const adreslerim = async (req, res, next) => {
-    const { musteriId } = req.body;
-    
     try {
+        const userId = req.userId;
+
         const sorgu = `SELECT * FROM addresses WHERE user_id = $1`;
 
-        const degerler = [musteriId];
+        const degerler = [userId];
         const sonuc = await db.query(sorgu, degerler);
 
         const adresler = sonuc.rows.map(item => ({
@@ -63,13 +65,15 @@ const adreslerim = async (req, res, next) => {
 }
 
 const adresSil = async (req, res, next) => {
-    const { musteriId, adresId } = req.body;
+    const { adresId } = req.body;
     
     try {
+        const userId = req.userId;
+
         const sorgu = `DELETE FROM addresses WHERE user_id = $1 AND id = $2
                        RETURNING *`;
 
-        const degerler = [musteriId, adresId];
+        const degerler = [userId, adresId];
         const sonuc = await db.query(sorgu, degerler);
 
         if (sonuc.rows.length > 0) {

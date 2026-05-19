@@ -1,0 +1,91 @@
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Kullanıcılar</h1>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Full Ad</th>
+                            <th>Email</th>
+                            <th>Telefon</th>
+                            <th>Rol</th>
+                            <th>Kayıt</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% users.forEach(element => { %>
+                         <tr>
+                            <td><%- element["full_name"] %></td>
+                            <td><%- element["email"] %></td>
+                            <td><%- element["phone"] %></td>
+                            <td><%- element["role"] %></td>
+                            <td><%- element["created_at"] %></td>
+                            <td>
+                                <span class="badge badge-pill <%= element["status"] === 'active' ? 'badge-success' : 'badge-secondary' %> status-badge">
+                                    <%= element["status"] === 'active' ? 'Aktif' : 'Pasif' %>
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm <%= element["status"] === 'active' ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn"
+                                    data-user-id="<%- element["id"] %>">
+                                    <%= element["status"] === 'active' ? 'Pasif Yap' : 'Aktif Yap' %>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.addEventListener('load', function () {
+    document.querySelectorAll('.toggle-status-btn').forEach(function (button) {
+        button.addEventListener('click', async function () {
+            const userId = this.dataset.userId;
+            const row = this.closest('tr');
+            const statusBadge = row.querySelector('.status-badge');
+            const isActive = this.textContent.trim() === 'Pasif Yap';
+
+            this.disabled = true;
+            this.textContent = 'Lütfen bekleyin...';
+
+            try {
+                const response = await fetch(`/users/${userId}/toggle-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(result.message || 'Durum güncellenemedi.');
+                    return;
+                }
+
+                const newStatus = result.status === 'active' ? 'Aktif' : 'Pasif';
+                statusBadge.textContent = newStatus;
+                statusBadge.classList.toggle('badge-success', result.status === 'active');
+                statusBadge.classList.toggle('badge-secondary', result.status !== 'active');
+
+                this.classList.toggle('btn-outline-success', result.status !== 'active');
+                this.classList.toggle('btn-outline-danger', result.status === 'active');
+                this.textContent = result.status === 'active' ? 'Pasif Yap' : 'Aktif Yap';
+            }
+            catch (err) {
+                alert('Durum güncellenirken hata oluştu.');
+            }
+            finally {
+                this.disabled = false;
+            }
+        });
+    });
+});
+</script>

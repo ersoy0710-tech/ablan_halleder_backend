@@ -1,10 +1,6 @@
 const { body, validationResult } = require('express-validator');
 
 const adresEkleValidationRules = [
-  body('musteriId')
-    .isUUID()
-    .withMessage('Geçerli bir müşteri giriniz.'),
-  
   body('baslik')
     .trim()
     .notEmpty()
@@ -33,32 +29,18 @@ const adresEkleValidationRules = [
 ]
 
 const adreslerimValidationRules = [
-  body('musteriId')
-    .isUUID()
-    .withMessage('Geçerli bir müşteri giriniz.'),
 ]
 
 const adresSilValidationRules = [
-  body('musteriId')
-    .isUUID()
-    .withMessage('Geçerli bir müşteri giriniz.'),
-
   body('adresId')
     .isUUID()
     .withMessage('Geçerli bir adres giriniz.'),
 ]
 
 const taleplerimValidationRules = [
-  body('musteriId')
-    .isUUID()
-    .withMessage('Geçerli bir müşteri giriniz.'),
 ]
 
 const talepOlusturValidationRules = [
-  body('musteriId')
-    .isUUID()
-    .withMessage('Geçerli bir müşteri ID formatı giriniz.'),
-  
   body('adresId')
     .isUUID()
     .withMessage('Geçerli bir adres ID formatı giriniz.'),
@@ -134,6 +116,17 @@ const girisYapValidationRules = [
     .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
 ];
 
+const adminGirisYapValidationRules = [
+  body('email')
+    .isEmail()
+    .withMessage('Geçerli bir e-posta adresi giriniz.')
+    .normalizeEmail(),
+
+  body('password')
+    .isLength({ min: 8, max: 18 })
+    .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
+];
+
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) {
@@ -155,5 +148,7 @@ module.exports = {
     talepOlusturValidationRules,
     kayitOlValidationRules,
     girisYapValidationRules,
+
+    adminGirisYapValidationRules,
     validate
 };
