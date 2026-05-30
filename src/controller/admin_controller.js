@@ -129,7 +129,7 @@ const requestDetailView = async (req, res, next) => {
     const user = req.session && req.session.user ? req.session.user : null;
     const requestId = req.params.id;
     try {
-        const sorgu = `SELECT SR.id, U.full_name customer, CONCAT(C.name, '/', D.name) AS address, SR.title, SR.description, SR.area_sqm, SR.has_pets, TO_CHAR(SR.scheduled_start, 'DD.MM.YYYY HH24:MI') AS scheduled_start, SR.status, TO_CHAR(SR.created_at, 'DD.MM.YYYY HH24:MI') AS created_at 
+        const sorgu = `SELECT SR.id, U.full_name customer, CONCAT(C.name, '/', D.name) AS address, SR.title, SR.description, SR.area_sqm, SR.price, SR.has_pets, TO_CHAR(SR.scheduled_start, 'DD.MM.YYYY HH24:MI') AS scheduled_start, SR.status, TO_CHAR(SR.created_at, 'DD.MM.YYYY HH24:MI') AS created_at 
                    FROM service_requests SR, users U, addresses A, cities C, districts D
                    WHERE SR.customer_id = U.id AND SR.address_id = A.id AND A.city_id = C.id AND A.district_id = D.id AND SR.id = $1`;
 
@@ -154,6 +154,46 @@ const requestDetailView = async (req, res, next) => {
     }
 }
 
+const approveRequest = async (req, res, next) => {
+    const { requestId } = req.params;
+    
+    try {
+        const sorgu = `UPDATE service_requests SET status = 'published' WHERE id = $1`;
+        await db.query(sorgu, [requestId]);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Talep başarıyla onaylandı ve yayınlandı.'
+        });
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: 'Hata oluştu!'
+        });
+    }
+}
+
+const rejectRequest = async (req, res, next) => {
+    const { requestId } = req.params;
+    
+    try {
+        const sorgu = `UPDATE service_requests SET status = 'canceled' WHERE id = $1`;
+        await db.query(sorgu, [requestId]);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Talep başarıyla reddedildi.'
+        });
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: 'Hata oluştu!'
+        });
+    }
+}
+
 module.exports = {
     loginView,
     login,
@@ -162,6 +202,9 @@ module.exports = {
 
     usersView,
     toggleUserStatus,
+
     requestsView,
-    requestDetailView
+    requestDetailView,
+    approveRequest,
+    rejectRequest
 }

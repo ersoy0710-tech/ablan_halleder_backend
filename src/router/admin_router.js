@@ -47,4 +47,16 @@ router.get(
     adminController.requestDetailView
 )
 
+router.post(
+    "/requests/:requestId/approve",
+    authSessionCheck,
+    adminController.approveRequest
+)
+
+router.post(
+    "/requests/:requestId/reject",
+    authSessionCheck,
+    adminController.rejectRequest
+)
+
 module.exports = router;

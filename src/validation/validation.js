@@ -37,13 +37,88 @@ const adresSilValidationRules = [
     .withMessage('Geçerli bir adres giriniz.'),
 ]
 
+const islerValidationRules = [
+]
+
+const aktifIsValidationRules = [
+]
+
+const isiAlValidationRules = [
+  body('talepId')
+    .isUUID()
+    .withMessage('Geçerli bir talep giriniz.'),
+]
+
+const isiIptalEtValidationRules = [
+]
+
+const temizligeBaslaValidationRules = [
+]
+
+const temizligiBitirValidationRules = [
+  body('temizlikciNotu')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 })
+    .withMessage("Temizlikçi notu en fazla 1000 karakter olabilir."),
+]
+
 const taleplerimValidationRules = [
+]
+
+const talepDetayValidationRules = [
+  body('talepId')
+    .isUUID()
+    .withMessage('Geçerli bir talep giriniz.'),
+]
+
+const talepIptalValidationRules = [
+  body('talepId')
+    .isUUID()
+    .withMessage('Geçerli bir talep giriniz.')
+]
+
+const talebiKapatValidationRules = [
+  body('talepId')
+    .isUUID()
+    .withMessage('Geçerli bir talep giriniz.'),
+
+  body('isApproved')
+    .isBoolean().withMessage('Onay durumu geçersiz'),
+
+  body('rating')
+    .custom((value, { req }) => {
+        if (req.body.isApproved === true) {
+            if (!Number.isInteger(value) || value < 1 || value > 5) {
+                throw new Error('Onay durumunda 1 ile 5 arasında bir değerlendirme zorunludur.');
+            }
+        }
+        return true;
+    }),
+
+  body('comment')
+      .optional()
+      .trim()
+      .isLength({ max: 1000 }).withMessage('Müşteri yorumu en fazla 1000 karakter olabilir.'),
+
+  body('disputeReason')
+    .custom((value, { req }) => {
+        if (req.body.isApproved === false) {
+            if (!value || value.trim().length === 0) {
+                throw new Error('Temizliği reddederken itiraz sebebi belirtmek zorunludur.');
+            }
+            if (value.trim().length > 2000) {
+                throw new Error('İtiraz sebebi en fazla 2000 karakter olabilir.');
+            }
+        }
+        return true;
+    })
 ]
 
 const talepOlusturValidationRules = [
   body('adresId')
     .isUUID()
-    .withMessage('Geçerli bir adres ID formatı giriniz.'),
+    .withMessage('Geçerli bir adres giriniz.'),
 
   body('baslik')
     .trim()
@@ -61,6 +136,10 @@ const talepOlusturValidationRules = [
   body('alan')
     .isInt({ min: 1 })
     .withMessage('Alan (m²) 0\'dan büyük bir sayı olmalıdır.'),
+
+  body('fiyat')
+    .isInt({ min: 1 })
+    .withMessage('Fiyat 0\'dan büyük bir değer olmalıdır.'),
 
   body('petVarMi')
     .isBoolean()
@@ -129,6 +208,7 @@ const adminGirisYapValidationRules = [
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
+  
   if (errors.isEmpty()) {
     return next();
   }
@@ -144,8 +224,19 @@ module.exports = {
     adreslerimValidationRules,
     adresSilValidationRules,
 
+    islerValidationRules,
+    aktifIsValidationRules,
+    isiAlValidationRules,
+    isiIptalEtValidationRules,
+    temizligeBaslaValidationRules,
+    temizligiBitirValidationRules,
+
     taleplerimValidationRules,
+    talepDetayValidationRules,
     talepOlusturValidationRules,
+    talepIptalValidationRules,
+    talebiKapatValidationRules,
+
     kayitOlValidationRules,
     girisYapValidationRules,
 
