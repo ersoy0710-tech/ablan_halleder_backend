@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 const isController = require("../controller/is_controller.js");
-const { islerValidationRules, aktifIsValidationRules, isiAlValidationRules, isiIptalEtValidationRules, temizligeBaslaValidationRules, temizligiBitirValidationRules, validate } = require("../validation/validation");
+const { islerValidationRules, aktifIsValidationRules, isiAlValidationRules, isiIptalEtValidationRules, temizligeBaslaValidationRules, temizligiBitirValidationRules, validate, gecmisIslerValidationRules } = require("../validation/validation");
 
 const jwtMd = require("../middleware/jwt_md.js");
 
@@ -37,6 +37,14 @@ router.get(
     validate,
     jwtMd.verifyAuthToken,
     isController.aktifIs
+)
+
+router.get(
+    "/gecmis_isler",
+    gecmisIslerValidationRules,
+    validate,
+    jwtMd.verifyAuthToken,
+    isController.gecmisIsler
 )
 
 router.post(

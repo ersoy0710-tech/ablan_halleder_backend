@@ -1,6 +1,20 @@
 <div class="container-fluid">
     <h1 class="h3 mb-2 text-gray-800">Kullanıcılar</h1>
 
+    <div class="row mb-4">
+        <div class="col-md-6 mb-2">
+            <input type="text" id="searchInput" class="form-control" placeholder="İsim, e-posta veya telefon numarası ara...">
+        </div>
+        <div class="col-md-4 mb-2">
+            <select id="roleFilter" class="form-control">
+                <option value="all">Tüm Kullanıcılar</option>
+                <option value="admin">Admin</option>
+                <option value="customer">Müşteri</option>
+                <option value="cleaner">Temizlikçi</option>
+            </select>
+        </div>
+    </div>
+
     <div class="card shadow mb-4">
         <div class="card-body">
             <div class="table-responsive">
@@ -16,12 +30,12 @@
                             <th>İşlem</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="usersTableBody">
                         <% users.forEach(element => { %>
-                         <tr>
-                            <td><%- element["full_name"] %></td>
-                            <td><%- element["email"] %></td>
-                            <td><%- element["phone"] %></td>
+                         <tr class="user-row" data-role="<%- element["role"] ? element["role"].toLowerCase() : '' %>">
+                            <td class="user-name"><%- element["full_name"] %></td>
+                            <td class="user-email"><%- element["email"] %></td>
+                            <td class="user-phone"><%- element["phone"] %></td>
                             <td><%- element["role"] %></td>
                             <td><%- element["created_at"] %></td>
                             <td>
@@ -30,6 +44,10 @@
                                 </span>
                             </td>
                             <td>
+                                <% if (element["role"].toLowerCase() !== 'admin') { %>
+                                    <a href="/user/<%- element["id"] %>" class="btn btn-sm btn-info text-white mr-2">Detay</a>
+                                <% } %>
+                                
                                 <button type="button" class="btn btn-sm <%= element["status"] === 'active' ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-status-btn"
                                     data-user-id="<%- element["id"] %>">
                                     <%= element["status"] === 'active' ? 'Pasif Yap' : 'Aktif Yap' %>
@@ -51,8 +69,7 @@ window.addEventListener('load', function () {
             const userId = this.dataset.userId;
             const row = this.closest('tr');
             const statusBadge = row.querySelector('.status-badge');
-            const isActive = this.textContent.trim() === 'Pasif Yap';
-
+            
             this.disabled = true;
             this.textContent = 'Lütfen bekleyin...';
 
@@ -87,5 +104,33 @@ window.addEventListener('load', function () {
             }
         });
     });
+
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const userRows = document.querySelectorAll('.user-row');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedRole = roleFilter.value.toLowerCase();
+
+        userRows.forEach(row => {
+            const name = row.querySelector('.user-name').textContent.toLowerCase();
+            const email = row.querySelector('.user-email').textContent.toLowerCase();
+            const phone = row.querySelector('.user-phone').textContent.toLowerCase();
+            const role = row.getAttribute('data-role');
+
+            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm) || phone.includes(searchTerm);
+            const matchesRole = selectedRole === 'all' || role.includes(selectedRole);
+
+            if (matchesSearch && matchesRole) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    roleFilter.addEventListener('change', filterTable);
 });
 </script>

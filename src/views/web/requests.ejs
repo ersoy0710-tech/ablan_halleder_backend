@@ -5,7 +5,9 @@
     in_progress: 'Devam Ediyor',
     awaiting_approval: 'Onay Bekliyor',
     completed: 'Tamamlandı',
-    canceled: 'İptal Edildi'
+    canceled: 'İptal Edildi',
+    approved: 'Onaylandı',
+    disputed: 'İtiraz Edildi'
 };
 const statusClassMap = {
     draft: 'badge-secondary',
@@ -14,7 +16,9 @@ const statusClassMap = {
     in_progress: 'badge-warning',
     awaiting_approval: 'badge-dark',
     completed: 'badge-success',
-    canceled: 'badge-danger'
+    canceled: 'badge-danger',
+    approved: 'badge-success',
+    disputed: 'badge-danger'
 }; %>
 
 <div class="container-fluid">
@@ -58,7 +62,7 @@ const statusClassMap = {
                             </td>
                             <td><%- request["created_at"] %></td>
                             <td>
-                                <a href="/requests/<%- request["id"] %>" class="btn btn-sm btn-primary">
+                                <a href="/request/<%- request["id"] %>" class="btn btn-sm btn-primary">
                                     Gör
                                 </a>
                             </td>

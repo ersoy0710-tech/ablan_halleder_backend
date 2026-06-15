@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 const adminController = require("../controller/admin_controller")
-const { adminGirisYapValidationRules, validate } = require("../validation/validation");
+const { adminGirisYapValidationRules, sikayetOnayValidationRules, validate } = require("../validation/validation");
 const authSessionCheck = require("../middleware/auth_session_md");
 
 
@@ -18,15 +18,38 @@ router.post(
 )
 
 router.get(
+    "/logout",
+    adminController.logout
+)
+
+router.get(
     "/home",
     authSessionCheck,
     adminController.homeView
 )
 
 router.get(
+    "/profile",
+    authSessionCheck,
+    adminController.profileView
+)
+
+router.post(
+    "/profile/change-password",
+    authSessionCheck,
+    adminController.changePassword
+)
+
+router.get(
     "/users",
     authSessionCheck,
     adminController.usersView
+)
+
+router.get(
+    "/user/:id",
+    authSessionCheck,
+    adminController.userDetailView
 )
 
 router.post(
@@ -42,21 +65,35 @@ router.get(
 )
 
 router.get(
-    "/requests/:id",
+    "/request/:id",
     authSessionCheck,
     adminController.requestDetailView
 )
 
 router.post(
-    "/requests/:requestId/approve",
+    "/request/:requestId/approve",
     authSessionCheck,
     adminController.approveRequest
 )
 
 router.post(
-    "/requests/:requestId/reject",
+    "/request/:requestId/reject",
     authSessionCheck,
     adminController.rejectRequest
+)
+
+router.get(
+    "/complaints",
+    authSessionCheck,
+    adminController.complaintsView
+)
+
+router.post(
+    "/resolve-dispute",
+    sikayetOnayValidationRules,
+    validate,
+    authSessionCheck,
+    adminController.resolveDispute
 )
 
 module.exports = router;

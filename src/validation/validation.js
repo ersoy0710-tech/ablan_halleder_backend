@@ -43,6 +43,9 @@ const islerValidationRules = [
 const aktifIsValidationRules = [
 ]
 
+const gecmisIslerValidationRules = [
+]
+
 const isiAlValidationRules = [
   body('talepId')
     .isUUID()
@@ -195,6 +198,14 @@ const girisYapValidationRules = [
     .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
 ];
 
+const anaValidationRules = [
+
+]
+
+const temizlikciProfilValidationRules = [
+  
+]
+
 const adminGirisYapValidationRules = [
   body('email')
     .isEmail()
@@ -204,6 +215,25 @@ const adminGirisYapValidationRules = [
   body('password')
     .isLength({ min: 8, max: 18 })
     .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
+];
+
+const sikayetOnayValidationRules = [
+  body('jobId')
+    .trim()
+    .notEmpty()
+    .withMessage('İş ID boş bırakılamaz.'),
+
+  body('requestId')
+    .trim()
+    .notEmpty()
+    .withMessage('Talep ID boş bırakılamaz.'),
+
+  body('decision')
+    .trim()
+    .notEmpty()
+    .withMessage('Karar  parametresi zorunludur.')
+    .isIn(['approve', 'cancel'])
+    .withMessage('Geçersiz işlem türü! Karar sadece "approve" veya "cancel" olabilir.')
 ];
 
 const validate = (req, res, next) => {
@@ -226,6 +256,7 @@ module.exports = {
 
     islerValidationRules,
     aktifIsValidationRules,
+    gecmisIslerValidationRules,
     isiAlValidationRules,
     isiIptalEtValidationRules,
     temizligeBaslaValidationRules,
@@ -240,6 +271,10 @@ module.exports = {
     kayitOlValidationRules,
     girisYapValidationRules,
 
+    anaValidationRules,
+    temizlikciProfilValidationRules,
+
     adminGirisYapValidationRules,
+    sikayetOnayValidationRules,
     validate
 };

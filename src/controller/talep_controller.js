@@ -16,11 +16,15 @@ const taleplerim = async (req, res, next) => {
                             S.area_sqm, 
                             S.has_pets, 
                             (S.scheduled_start AT TIME ZONE 'Europe/Istanbul') AS scheduled_start,
-                            COALESCE(A.status::text, S.status::text) AS status
+                            CASE 
+                                WHEN S.status = 'canceled' THEN 'canceled'
+                                ELSE COALESCE(A.status::text, S.status::text) 
+                            END AS status
                         FROM service_requests S
                         LEFT JOIN jobs J ON J.request_id = S.id 
                         LEFT JOIN approvals A ON A.job_id = J.id
-                        WHERE S.customer_id = $1;`;
+                        WHERE S.customer_id = $1
+                        ORDER BY status DESC;`;
 
         const degerler = [userId];
         const sonuc = await db.query(sorgu, degerler);
@@ -143,11 +147,15 @@ const talepDetay = async (req, res, next) => {
 
         const sorgu = `SELECT 
                             S.id AS talep_id, 
+                            J.cleaner_id AS temizlikci_id,
                             S.title AS baslik, 
                             S.description AS aciklama, 
                             S.area_sqm AS alan, 
-                            S.has_pets AS hayvan_var_mi, 
-                            COALESCE(APP.status::text, S.status::text) AS talep_durumu,
+                            S.has_pets AS hayvan_var_mi,
+                            CASE 
+                                WHEN S.status = 'canceled' THEN 'canceled'
+                                ELSE COALESCE(APP.status::text, S.status::text)
+                            END AS talep_durumu,
                             (S.scheduled_start AT TIME ZONE 'Europe/Istanbul') AS planlanan_tarih,
                             (S.price)::INTEGER AS fiyat,
                             C.name AS il, 
@@ -258,7 +266,7 @@ const talebiKapat = async (req, res, next) => {
         await client.query('BEGIN');
 
         const kontrolSorgu = `
-            SELECT r.status AS req_status, j.id AS job_id 
+            SELECT r.status AS req_status, j.id AS job_id, j.cleaner_id
             FROM service_requests r
             JOIN jobs j ON r.id = j.request_id
             WHERE r.id = $1 AND r.customer_id = $2
@@ -285,6 +293,7 @@ const talebiKapat = async (req, res, next) => {
         }
 
         const jobId = isData.job_id;
+        const cleanerId = isData.cleaner_id;
 
         if (isApproved) {
             await client.query(
@@ -302,7 +311,6 @@ const talebiKapat = async (req, res, next) => {
                 VALUES ($1, $2, 'approved', NOW(), $3, $4)
             `;
             await client.query(insertApproval, [jobId, musteriId, rating, comment || null]);
-
         }
         else {
             await client.query(
@@ -311,13 +319,18 @@ const talebiKapat = async (req, res, next) => {
             );
             
             const insertApproval = `
-                INSERT INTO approvals (job_id, customer_id, status, dispute_reason)
-                VALUES ($1, $2, 'disputed', $3)
+                INSERT INTO approvals (job_id, customer_id, status, rating, dispute_reason)
+                VALUES ($1, $2, 'disputed', $3, $4)
             `;
-            await client.query(insertApproval, [jobId, musteriId, disputeReason]);
+            await client.query(insertApproval, [jobId, musteriId, rating, disputeReason]);
         }
 
         await client.query('COMMIT');
+
+        // await yapmıyoruz arka planda kendisi yapsın
+        if (isApproved && comment && cleanerId) {
+            updateCleanerAISummary(cleanerId);
+        }
 
         return res.status(200).json({
             success: true,
@@ -335,6 +348,46 @@ const talebiKapat = async (req, res, next) => {
         });
     } finally {
         client.release();
+    }
+};
+
+const updateCleanerAISummary = async (cleanerId) => {
+    try {
+        const commentsQuery = `
+            SELECT a.comment 
+            FROM approvals a
+            JOIN jobs j ON a.job_id = j.id
+            WHERE j.cleaner_id = $1 AND a.comment IS NOT NULL AND a.comment != ''
+        `;
+        const commentsResult = await db.pool.query(commentsQuery, [cleanerId]);
+        
+        if (commentsResult.rows.length === 0) return;
+
+        const allComments = commentsResult.rows.map(row => row.comment).join(" | ");
+
+        const promptText = `Aşağıdaki müşteri yorumlarını inceleyerek bu personel için genel performansını yansıtan kurumsal bir özet oluştur:\n\n${allComments}`;
+
+        const ollamaResponse = await fetch(`${process.env.OLLAMA_URL}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'ik_asistani',
+                prompt: promptText,
+                stream: false
+            })
+        });
+
+        const ollamaData = await ollamaResponse.json();
+        
+        if (ollamaData && ollamaData.response) {
+            const aiSummary = ollamaData.response.trim();
+
+            const updateQuery = `UPDATE users SET summary = $1 WHERE id = $2`;
+            await db.pool.query(updateQuery, [aiSummary, cleanerId]);
+        }
+
+    } catch (error) {
+        console.error("❌ AI Özet Güncelleme Hatası:", error.message);
     }
 };
 

@@ -125,6 +125,8 @@ const isiAl = async (req, res, next) => {
             });
         }
 
+        /* AKTİF İŞİ VARKEN İŞ ALAMASIN */
+
         const insertSorgu = `INSERT INTO jobs (request_id, cleaner_id, status, accepted_at)
                              VALUES ($1, $2, 'assigned', NOW())`;
         await client.query(insertSorgu, [talepId, userId]);
@@ -202,9 +204,63 @@ const isiIptalEt = async (req, res, next) => {
     }
 }
 
+const gecmisIsler = async (req, res, next) => {
+    const userId = req.userId;
+
+    try {
+        const userQuery = await db.pool.query('SELECT role FROM users WHERE id = $1', [userId]);
+        
+        if (userQuery.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Kullanıcı bulunamadı.' });
+        }
+
+        const userRole = userQuery.rows[0].role;
+
+        if (userRole !== 'cleaner') {
+            return res.status(403).json({ 
+                success: false, 
+                message: 'Bu sayfaya sadece temizlikçiler erişebilir.' 
+            });
+        }
+
+        const query = `
+            SELECT 
+                j.id AS is_id, 
+                sr.id AS talep_id, 
+                sr.title AS baslik, 
+                (sr.price)::INTEGER AS fiyat,
+                sr.area_sqm AS alan,
+                a.rating AS puan,
+                CASE 
+                    WHEN sr.status = 'canceled' THEN 'canceled'
+                    ELSE COALESCE(a.status::text, j.status::text)
+                END AS is_durumu,
+                (sr.scheduled_start AT TIME ZONE 'Europe/Istanbul') AS planlanan_tarih,
+                (j.completed_at AT TIME ZONE 'Europe/Istanbul') AS tamamlama_tarihi
+            FROM jobs j
+            JOIN service_requests sr ON j.request_id = sr.id
+            LEFT JOIN approvals a ON j.id = a.job_id
+            WHERE j.cleaner_id = $1 
+              AND j.status = 'completed'
+            ORDER BY sr.scheduled_start DESC
+        `;
+
+        const result = await db.pool.query(query, [userId]);
+
+        return res.status(200).json({
+            success: true,
+            data: result.rows
+        });
+
+    } catch (err) {
+        console.error("Geçmiş işler listelenirken hata oluştu:", err);
+        return res.status(500).json({ success: false, message: 'Geçmiş işler alınamadı!' });
+    }
+};
+
 const temizligeBasla = async (req, res, next) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ success: false, message: 'Temizliğe başlamak için temizlik öncesi (before) fotoğrafları zorunludur!' });
+        return res.status(400).json({ success: false, message: 'Temizliğe başlamak için temizlik öncesi fotoğrafları zorunludur!' });
     }
 
     const client = await db.pool.connect();
@@ -214,7 +270,14 @@ const temizligeBasla = async (req, res, next) => {
 
         await client.query('BEGIN');
 
-        const aktifIsSorgusu = `SELECT id, request_id FROM jobs WHERE cleaner_id = $1 AND status = 'assigned' FOR UPDATE`;
+        const aktifIsSorgusu = `
+            SELECT j.id, j.request_id, sr.scheduled_start 
+            FROM jobs j
+            JOIN service_requests sr ON j.request_id = sr.id
+            WHERE j.cleaner_id = $1 AND j.status = 'assigned' 
+            FOR UPDATE
+        `;
+
         const aktifIsSonuc = await client.query(aktifIsSorgusu, [userId]);
 
         if (aktifIsSonuc.rows.length === 0) {
@@ -230,10 +293,34 @@ const temizligeBasla = async (req, res, next) => {
             });
         }
 
-        const jobId = aktifIsSonuc.rows[0].id;
-        const talepId = aktifIsSonuc.rows[0].request_id;
+        const isData = aktifIsSonuc.rows[0];
+        const jobId = isData.id;
+        const talepId = isData.request_id;
+        
+        // BURA AKTİF EDİLECEK
+        /*const scheduledStart = new Date(isData.scheduled_start);
+        const today = new Date();
 
-        // YENİ KLASÖR YAPISI: uploads/{talepId}/jobs/{jobId}/before
+        const isSameDay = 
+            today.getFullYear() === scheduledStart.getFullYear() &&
+            today.getMonth() === scheduledStart.getMonth() &&
+            today.getDate() === scheduledStart.getDate();
+
+        if (!isSameDay) {
+            await client.query('ROLLBACK');
+            
+            for (const file of req.files) {
+                if (fsExtra.existsSync(file.path)) fsExtra.unlinkSync(file.path);
+            }
+            
+            const formattedDate = scheduledStart.toLocaleDateString('tr-TR');
+
+            return res.status(400).json({
+                success: false,
+                message: `Temizliğe sadece planlanan günde başlayabilirsiniz! (Planlanan Tarih: ${formattedDate})`
+            });
+        }*/
+
         const targetDir = path.join(__dirname, `../uploads/${talepId}/jobs/${jobId}/before`);
         if (!fsExtra.existsSync(targetDir)) {
             fsExtra.mkdirSync(targetDir, { recursive: true });
@@ -249,10 +336,8 @@ const temizligeBasla = async (req, res, next) => {
             const newFileName = `${photoId}${extension}`;
             const finalPath = path.join(targetDir, newFileName);
 
-            // Geçici klasörden (../uploads) hedef klasöre taşıma
             fsExtra.renameSync(file.path, finalPath);
 
-            // Veritabanına kaydedilecek relative URL
             const relativeUrl = `/uploads/${talepId}/jobs/${jobId}/before/${newFileName}`;
 
             const insertFotoSorgu = `
@@ -280,7 +365,6 @@ const temizligeBasla = async (req, res, next) => {
         await client.query('ROLLBACK');
         console.log(err);
 
-        // Hata durumunda geçici (temp) dosyaları sil
         if (req.files) {
             for (const file of req.files) {
                 if (fsExtra.existsSync(file.path)) fsExtra.unlinkSync(file.path);
@@ -400,6 +484,7 @@ module.exports = {
     aktifIs,
     isiAl,
     isiIptalEt,
+    gecmisIsler,
     temizligeBasla,
     temizligiBitir
 }

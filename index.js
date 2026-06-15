@@ -31,12 +31,14 @@ app.set('layout', __dirname + './src/views/layouts')
 app.set('view engine', 'ejs');
 
 const authRouter = require("./src/router/auth_router");
+const anaRouter = require("./src/router/ana_router");
 const adresRouter = require("./src/router/adres_router.js");
 const talepRouter = require("./src/router/talep_router");
 const isRouter = require("./src/router/is_router");
 const adminRouter = require("./src/router/admin_router.js");
 
 app.use("/api/", authRouter);
+app.use("/api/", anaRouter);
 app.use("/api/", adresRouter);
 app.use("/api/", talepRouter);
 app.use("/api/", isRouter);

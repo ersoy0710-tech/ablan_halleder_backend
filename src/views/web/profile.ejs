@@ -1,0 +1,136 @@
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Profilim</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center mt-4">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px; font-size: 3rem;">
+                        <%- user.full_name.charAt(0).toUpperCase() %>
+                    </div>
+                    
+                    <h5 class="font-weight-bold mb-1"><%- user.full_name %></h5>
+                    <p class="text-muted mb-3"><%- user.email %></p>
+                    
+                    <span class="badge badge-danger px-3 py-2 text-uppercase mb-4">
+                        Yönetici
+                    </span>
+
+                    <ul class="list-group list-group-flush text-left">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-gray-800">Telefon</span>
+                            <span class="text-muted"><%- user.phone || '-' %></span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Kişisel Bilgiler</h6>
+                </div>
+                <div class="card-body">
+                    <form id="profileUpdateForm">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="fullName">Ad Soyad</label>
+                                <input type="text" class="form-control" id="fullName" value="<%- user.full_name %>" required disabled>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="phone">Telefon</label>
+                                <input type="text" class="form-control" id="phone" value="<%- user.phone || '' %>" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-posta Adresi</label>
+                            <input type="email" class="form-control" id="email" value="<%- user.email %>" required disabled>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Şifre Değiştir</h6>
+                </div>
+                <div class="card-body">
+                    <form id="passwordUpdateForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Mevcut Şifre</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="newPassword">Yeni Şifre</label>
+                                <input type="password" class="form-control" id="newPassword" required minlength="6">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="newPasswordConfirm">Yeni Şifre (Tekrar)</label>
+                                <input type="password" class="form-control" id="newPasswordConfirm" required minlength="6">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger" id="btnUpdatePassword">
+                            <i class="fas fa-key fa-sm mr-1"></i> Şifreyi Güncelle
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordForm = document.getElementById('passwordUpdateForm');
+    const btnUpdatePassword = document.getElementById('btnUpdatePassword');
+
+    passwordForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
+
+        if (newPassword !== newPasswordConfirm) {
+            alert('Yeni şifreler eşleşmiyor!');
+            return;
+        }
+
+        const data = { currentPassword, newPassword };
+
+        const originalText = btnUpdatePassword.innerHTML;
+        btnUpdatePassword.disabled = true;
+        btnUpdatePassword.innerHTML = 'Güncelleniyor...';
+
+        try {
+            const response = await fetch('/profile/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Şifreniz başarıyla değiştirildi.');
+                passwordForm.reset();
+            } else {
+                alert(result.message || 'Şifre değiştirilemedi.');
+            }
+        }
+        catch (err) {
+            alert('Bir hata oluştu!');
+        }
+        finally {
+            btnUpdatePassword.disabled = false;
+            btnUpdatePassword.innerHTML = originalText;
+        }
+    });
+
+});
+</script>

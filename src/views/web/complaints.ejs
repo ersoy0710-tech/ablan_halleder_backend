@@ -1,0 +1,53 @@
+<div class="container-fluid">
+    <h1 class="h3 mb-2 text-gray-800">Şikayetler ve İtirazlar</h1>
+    <p class="mb-4">Müşteriler tarafından reddedilen ve acil olarak incelenmesi gereken temizlik işlemleri aşağıda listelenmektedir.</p>
+
+    <div class="card shadow border-left-danger mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-danger">İncelenmeyi Bekleyen Şikayetler</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Müşteri</th>
+                            <th>Temizlikçi</th>
+                            <th>Talep Başlığı</th>
+                            <th style="width: 30%;">İtiraz Sebebi</th>
+                            <th class="text-center">İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (complaints && complaints.length > 0) { %>
+                            <% complaints.forEach(comp => { %>
+                                <tr>
+                                    <td class="align-middle"><%- comp.date %></td>
+                                    <td class="align-middle font-weight-bold"><%- comp.customer_name %></td>
+                                    <td class="align-middle"><%- comp.cleaner_name %></td>
+                                    <td class="align-middle"><%- comp.request_title || 'Başlıksız Talep' %></td>
+                                    <td class="align-middle text-danger font-italic">
+                                        "<%- comp.dispute_reason %>"
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <a href="/request/<%- comp.request_id %>" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-search mr-1"></i> İncele
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-check-circle fa-2x mb-2 text-success d-block"></i>
+                                    Harika! Şu anda sistemde incelenmeyi bekleyen hiçbir şikayet bulunmuyor.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

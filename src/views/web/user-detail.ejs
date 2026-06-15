@@ -1,0 +1,165 @@
+<% 
+const roleLabelMap = { admin: 'Admin', customer: 'Müşteri', cleaner: 'Temizlikçi' };
+const roleClassMap = { admin: 'badge-danger', customer: 'badge-primary', cleaner: 'badge-info' };
+
+const statusMap = {
+    draft: { label: 'Taslak', class: 'badge-secondary' },
+    published: { label: 'Yayınlandı', class: 'badge-primary' },
+    assigned: { label: 'Atandı', class: 'badge-info' },
+    in_progress: { label: 'Devam Ediyor', class: 'badge-warning' },
+    awaiting_approval: { label: 'Onay Bekliyor', class: 'badge-dark' },
+    completed: { label: 'Tamamlandı', class: 'badge-success' },
+    canceled: { label: 'İptal Edildi', class: 'badge-danger' },
+    approved: { label: 'Onaylandı', class: 'badge-success' },
+    disputed: { label: 'İtiraz Edildi', class: 'badge-danger' }
+};
+
+const getStatus = (statusStr) => statusMap[statusStr] || { label: statusStr, class: 'badge-secondary' };
+%>
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Kullanıcı Detayı: <%- targetUser.full_name %></h1>
+        <a href="/users" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kullanıcılara Dön
+        </a>
+    </div>
+
+    <!-- Profil Bilgileri -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Profil Bilgileri</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Kullanıcı ID</dt>
+                        <dd class="col-sm-8"><%- targetUser.id %></dd>
+                        <dt class="col-sm-4">Ad Soyad</dt>
+                        <dd class="col-sm-8"><%- targetUser.full_name %></dd>
+                        <dt class="col-sm-4">E-posta</dt>
+                        <dd class="col-sm-8"><a href="mailto:<%- targetUser.email %>"><%- targetUser.email %></a></dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Telefon</dt>
+                        <dd class="col-sm-8"><%- targetUser.phone || '-' %></dd>
+                        <dt class="col-sm-4">Kayıt Tarihi</dt>
+                        <dd class="col-sm-8"><%- targetUser.created_at %></dd>
+                        <dt class="col-sm-4">Rol & Durum</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge badge-pill <%= roleClassMap[targetUser.role] || 'badge-dark' %>">
+                                <%= roleLabelMap[targetUser.role] || targetUser.role %>
+                            </span>
+                            <span class="badge badge-pill <%= targetUser.status === 'active' ? 'badge-success' : 'badge-secondary' %>">
+                                <%= targetUser.status === 'active' ? 'Aktif' : 'Pasif' %>
+                            </span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <% if (targetUser.role !== 'admin') { %>
+        <!-- Temizlikçi AI Performans Özeti -->
+        <% if (targetUser.role === 'cleaner') { %>
+            <div class="card shadow mb-4 border-left-warning">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning"><i class="fas fa-robot mr-1"></i> AI Performans Özeti</h6>
+                </div>
+                <div class="card-body">
+                    <% if (!history || history.length === 0) { %>
+                        <div class="alert alert-secondary mb-0">Bu personel henüz hiçbir görev almamıştır.</div>
+                    <% } else if (ratingCount === 0) { %>
+                        <div class="alert alert-info mb-0">İş geçmişi bulunuyor ancak henüz değerlendirme yapılmamış.</div>
+                    <% } else { %>
+                        <div class="row align-items-center">
+                            <div class="col-auto text-center border-right pr-4">
+                                <h1 class="display-4 font-weight-bold text-warning mb-0"><%- avgRating %></h1>
+                                <div class="text-muted small"><%- ratingCount %> Değerlendirme</div>
+                                <div class="text-warning mt-1">
+                                    <% for(let i=1; i<=5; i++) { %>
+                                        <i class="fa<%= i <= Math.round(avgRating) ? 's' : 'r' %> fa-star"></i>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="col pl-4">
+                                <p class="mb-0 font-italic text-gray-800 lead">"<%- summary %>"</p>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+
+        <h4 class="mb-3 text-gray-800"><i class="fas fa-history mr-2"></i><%= targetUser.role === 'customer' ? 'Talepler ve Onay Geçmişi' : 'Görevler ve Onay Geçmişi' %></h4>
+
+        <% if (history && history.length > 0) { %>
+            <% history.forEach(item => { 
+                const reqStatus = getStatus(item.status);
+            %>
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <div>
+                            <h6 class="m-0 font-weight-bold text-primary mb-1"><%- item.title || 'Başlıksız Talep' %></h6>
+                            <span class="text-muted small"><i class="far fa-calendar-alt"></i> Oluşturulma: <%- item.date %></span>
+                        </div>
+                        <div class="mt-2 mt-md-0 text-md-right">
+                            <span class="badge badge-pill <%= reqStatus.class %> d-inline-block px-3 py-2"><%= reqStatus.label %></span>
+                            <a href="/request/<%- item.request_id %>" class="btn btn-sm btn-outline-primary ml-2">
+                                Detay <i class="fas fa-arrow-right fa-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="mb-3 text-gray-700"><%- item.description || 'Açıklama bulunmuyor.' %></p>
+                        
+                        <% if (item.approval_status) { 
+                            const appStatus = getStatus(item.approval_status);
+                            let borderColor = 'info';
+                            if(item.rating) borderColor = 'success';
+                            if(item.dispute_reason) borderColor = 'danger';
+                        %>
+                            <div class="card bg-light border-left-<%= borderColor %>">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="font-weight-bold text-dark">
+                                            İşlem Sonucu: <span class="badge <%= appStatus.class %>"><%= appStatus.label %></span>
+                                        </span>
+                                        <span class="text-muted small"><i class="far fa-clock"></i> <%- item.approval_date %></span>
+                                    </div>
+                                    
+                                    <% if (item.rating) { %>
+                                        <div class="mb-2 text-warning">
+                                            <% for(let i=1; i<=5; i++) { %>
+                                                <i class="fa<%= i <= item.rating ? 's' : 'r' %> fa-star"></i>
+                                            <% } %>
+                                            <span class="text-dark font-weight-bold ml-1">(<%- item.rating %>/5)</span>
+                                        </div>
+                                        <div class="p-3 bg-white rounded border border-light">
+                                            <p class="mb-0 font-italic text-gray-700"><%- item.comment || 'Müşteri yorum bırakmadı.' %></p>
+                                        </div>
+                                    <% } 
+                                    
+                                    else if (item.dispute_reason) { %>
+                                        <div class="p-3 mt-2 bg-white rounded border border-danger">
+                                            <p class="mb-0 text-danger font-italic">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i> <strong>İtiraz Sebebi:</strong> <%- item.dispute_reason %>
+                                            </p>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="alert alert-info">Kullanıcıya ait herhangi bir talep veya görev geçmişi bulunmuyor.</div>
+        <% } %>
+    <% } %>
+</div>
