@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
           source: "." 
-          target: "/home/${{ secrets.AZURE_USERNAME }}/ablan_halleder"
+          target: "/home/${{ secrets.AZURE_USERNAME }}/ablan_halleder_backend"
 
       - name: ⚙️ 4. Azure'da Docker İşlemlerini Başlat
         uses: appleboy/ssh-action@v1.0.3
