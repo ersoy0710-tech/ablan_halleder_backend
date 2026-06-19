@@ -1,44 +1,42 @@
 name: Ablan Halleder Backend Deploy
 
-# Hangi durumlarda çalışacağını belirliyoruz
 on:
   push:
     branches:
-      - main # Eğer ana dalının adı 'master' ise burayı master olarak değiştir.
+      - main
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest # GitHub Actions'ın çalışacağı sanal makine
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Aşama: GitHub sunucusuna projenin en güncel kodlarını çeker
       - name: 🚚 1. Kodları Çek (Checkout)
         uses: actions/checkout@v4
 
-      # 2. Aşama: Şifre kullanarak dosyaları Azure'a kopyalar (scp mantığı)
-      - name: 📤 2. Dosyaları Azure'a Aktar
+      # scp-action 'exclude' desteklemediği için, gereksiz .git klasörünü transferden önce manuel siliyoruz.
+      - name: 🧹 2. Gereksiz Dosyaları Temizle
+        run: rm -rf .git
+
+      - name: 📤 3. Dosyaları Azure'a Aktar
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.AZURE_HOST }}
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
-          source: "." # Tüm klasörü al
+          source: "." 
           target: "/home/${{ secrets.AZURE_USERNAME }}/ablan_halleder"
-          exclude: "node_modules,.git,.env" # Azure'a gitmesine gerek olmayanlar
 
-      # 3. Aşama: Şifre kullanarak Azure'a bağlanır ve Docker komutlarını çalıştırır
-      - name: ⚙️ 3. Azure'da Docker İşlemlerini Başlat
+      - name: ⚙️ 4. Azure'da Docker İşlemlerini Başlat
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AZURE_HOST }}
           username: ${{ secrets.AZURE_USERNAME }}
           password: ${{ secrets.AZURE_PASSWORD }}
           script: |
-            # Hedef klasöre git
             cd /home/${{ secrets.AZURE_USERNAME }}/ablan_halleder
             
             echo "🛠️ Azure: Yeni kodlarla imaj derleniyor..."
-            sudo docker build -t ablan_halleder_backend:latest .
+            sudo docker build -t ablan-halleder-backend:latest .
             
             echo "🛑 Azure: Eski konteyner durduruluyor ve siliniyor..."
             sudo docker stop ablan-halleder-backend-container || true
