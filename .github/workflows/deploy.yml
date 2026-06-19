@@ -36,7 +36,7 @@ jobs:
             cd /home/${{ secrets.AZURE_USERNAME }}/ablan_halleder
             
             echo "🛠️ Azure: Yeni kodlarla imaj derleniyor..."
-            sudo docker build -t ablan-halleder-backend:latest .
+            sudo docker build -t ablan_halleder_backend:latest .
             
             echo "🛑 Azure: Eski konteyner durduruluyor ve siliniyor..."
             sudo docker stop ablan-halleder-backend-container || true
