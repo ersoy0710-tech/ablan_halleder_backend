@@ -36,18 +36,18 @@ jobs:
             cd /home/${{ secrets.AZURE_USERNAME }}/ablan_halleder_backend
             
             echo "🛠️ Azure: Yeni kodlarla imaj derleniyor..."
-            sudo docker build -t ablan_halleder_backend:latest .
+            docker build -t ablan_halleder_backend:latest .
             
             echo "🛑 Azure: Eski konteyner durduruluyor ve siliniyor..."
-            sudo docker stop ablan-halleder-backend-container || true
-            sudo docker rm ablan-halleder-backend-container || true
+            docker stop ablan-halleder-backend-container || true
+            docker rm ablan-halleder-backend-container || true
             
             echo "🚀 Azure: Yeni konteyner ayağa kaldırılıyor..."
-            sudo docker run -d \
+            docker run -d \
                 --name ablan-halleder-backend-container \
                 --network host \
                 --restart always \
                 ablan-halleder-backend:latest
                 
             echo "🧹 Azure: Temizlik yapılıyor..."
-            sudo docker image prune -f
+            docker image prune -f
