@@ -38,7 +38,7 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: 🧹 6. Gereksiz Dosyaları Temizle
-        run: rm -rf .git node_modules
+        run: rm -rf .git node_modules src/key
 
       - name: 📤 7. Dosyaları Azure'a Aktar
         uses: appleboy/scp-action@v0.1.7
