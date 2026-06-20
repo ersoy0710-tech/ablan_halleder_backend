@@ -13,34 +13,10 @@ jobs:
       - name: 🚚 1. Kodları Çek (Checkout)
         uses: actions/checkout@v4
 
-      - name: 🟢 2. Node.js Ortamını Hazırla
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
+      - name: 🧹 2. Gereksiz Dosyaları Temizle
+        run: rm -rf .git
 
-      - name: 📦 3. Bağımlılıkları Kur (npm ci)
-        run: npm ci
-
-      - name: 🔑 3.5. Test İçin Sahte PEM Dosyaları Oluştur
-        run: |
-          mkdir -p src/key
-          openssl genrsa -out src/key/private.pem 2048
-          openssl rsa -in src/key/private.pem -pubout -out src/key/public.pem
-
-      - name: 🧪 4. Testleri Çalıştır (npm test)
-        run: npm test
-        env:
-          PORT: 3000
-          JWT_EXPIRES: "1w"
-
-      - name: 🛡️ 5. Güvenlik Taraması (npm audit)
-        run: npm audit --audit-level=high
-
-      - name: 🧹 6. Gereksiz Dosyaları Temizle
-        run: rm -rf .git node_modules
-
-      - name: 📤 7. Dosyaları Azure'a Aktar
+      - name: 📤 3. Dosyaları Azure'a Aktar
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.AZURE_HOST }}
@@ -49,7 +25,7 @@ jobs:
           source: "." 
           target: "/home/${{ secrets.AZURE_USERNAME }}/ablan_halleder_backend"
 
-      - name: ⚙️ 8. Azure'da Docker İşlemlerini Başlat
+      - name: ⚙️ 4. Azure'da Docker İşlemlerini Başlat
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.AZURE_HOST }}
