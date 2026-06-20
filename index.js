@@ -13,14 +13,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.set('trust proxy', 1);
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    secure: false,
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24
-  }
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }));
 app.use(expressLayouts);
 app.use(express.static(__dirname + '/src/_public'));
@@ -44,7 +44,9 @@ app.use("/api/", talepRouter);
 app.use("/api/", isRouter);
 app.use("/", adminRouter);
 
+app.get('/{*splat}', (req, res) => { res.redirect('/login') })
+
 var serverPORT = process.env.PORT || 3000;
 app.listen(serverPORT, () => {
-  console.log("server is running on", serverPORT);
+    console.log("server is running on", serverPORT);
 });
