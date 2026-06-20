@@ -2,9 +2,9 @@ const db = require("../db/db.js")
 
 const { generateAuthToken } = require("../common/jwt.js")
 
-const kayitOl = async (req, res, next) => {
+const kayitOl = async(req, res, next) => {
     const { rol, adSoyad, email, telefon, sifre } = req.body;
-    
+
     // dışarıdan rol admin bilgisi gelmez validationda engellendi
     try {
         const sorgu = `INSERT INTO users (role, full_name, email, phone, password, status, created_at, updated_at) 
@@ -19,14 +19,12 @@ const kayitOl = async (req, res, next) => {
                 success: true,
                 message: 'Kullanıcı başarıyla oluşturuldu.'
             });
-        }
-        else {
+        } else {
             throw new Error('Kayıt yapılamadı!');
         }
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -34,9 +32,9 @@ const kayitOl = async (req, res, next) => {
     }
 }
 
-const girisYap = async (req, res, next) => {
+const girisYap = async(req, res, next) => {
     const { email, sifre } = req.body;
-    
+
     try {
         const sorgu = `SELECT id, role, full_name, email, phone 
                        FROM users 
@@ -47,6 +45,7 @@ const girisYap = async (req, res, next) => {
 
         if (sonuc.rows.length > 0) {
             const generatedAuthToken = generateAuthToken(sonuc.rows[0]["id"]);
+
             if (generatedAuthToken === null) {
                 throw new Error();
             }
@@ -62,12 +61,10 @@ const girisYap = async (req, res, next) => {
                     "phone": sonuc.rows[0]["phone"]
                 }
             });
-        }
-        else {
+        } else {
             throw new Error('Kayıt bulunamadı!');
         }
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).json({
             success: false,
             message: 'Kayıt bulunamadı!'

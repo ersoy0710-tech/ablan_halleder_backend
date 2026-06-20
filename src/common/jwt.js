@@ -6,6 +6,9 @@ const path = require('path');
 const privateKeyPath = path.join(__dirname, '..', 'key', 'private.pem');
 const publicKeyPath = path.join(__dirname, '..', 'key', 'public.pem');
 
+const privateKey = fs.readFileSync(privateKeyPath, 'utf8');
+const publicKey = fs.readFileSync(publicKeyPath, 'utf8');
+
 const jwtExpires = process.env.JWT_EXPIRES;
 
 function generateAuthToken(id) {

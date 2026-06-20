@@ -1,6 +1,6 @@
 const authSessionCheck = (req, res, next) => {
     if (!req.session.user) {
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV === 'test') {
             req.session.user = {
                 id: '1087543b-68c5-48a7-acb1-2b6675ce92a7',
                 email: 'admin@ablanhalleder.com',
