@@ -1,95 +1,88 @@
 const { body, validationResult } = require('express-validator');
 
 const adresEkleValidationRules = [
-  body('baslik')
+    body('baslik')
     .trim()
     .notEmpty()
     .withMessage('Başlık boş bırakılamaz.')
     .isLength({ max: 100 })
     .withMessage('Başlık en fazla 100 karakter olabilir.'),
 
-  body('adres')
+    body('adres')
     .trim()
     .notEmpty()
     .withMessage('Açık adres alanı boş bırakılamaz.')
     .isLength({ min: 10, max: 500 })
     .withMessage('Adres çok kısa veya çok uzun (10-500 karakter).'),
 
-  body('ilId')
+    body('ilId')
     .notEmpty()
     .withMessage('İl seçimi zorunludur.')
     .isInt({ min: 1 })
     .withMessage('Geçerli bir il giriniz.'),
 
-  body('ilceId')
+    body('ilceId')
     .notEmpty()
     .withMessage('İlçe seçimi zorunludur.')
     .isInt({ min: 1 })
     .withMessage('Geçerli bir ilçe giriniz.')
 ]
 
-const adreslerimValidationRules = [
-]
+const adreslerimValidationRules = []
 
 const adresSilValidationRules = [
-  body('adresId')
+    body('adresId')
     .isUUID()
     .withMessage('Geçerli bir adres giriniz.'),
 ]
 
-const islerValidationRules = [
-]
+const islerValidationRules = []
 
-const aktifIsValidationRules = [
-]
+const aktifIsValidationRules = []
 
-const gecmisIslerValidationRules = [
-]
+const gecmisIslerValidationRules = []
 
 const isiAlValidationRules = [
-  body('talepId')
+    body('talepId')
     .isUUID()
     .withMessage('Geçerli bir talep giriniz.'),
 ]
 
-const isiIptalEtValidationRules = [
-]
+const isiIptalEtValidationRules = []
 
-const temizligeBaslaValidationRules = [
-]
+const temizligeBaslaValidationRules = []
 
 const temizligiBitirValidationRules = [
-  body('temizlikciNotu')
+    body('temizlikciNotu')
     .optional()
     .trim()
     .isLength({ max: 1000 })
     .withMessage("Temizlikçi notu en fazla 1000 karakter olabilir."),
 ]
 
-const taleplerimValidationRules = [
-]
+const taleplerimValidationRules = []
 
 const talepDetayValidationRules = [
-  body('talepId')
+    body('talepId')
     .isUUID()
     .withMessage('Geçerli bir talep giriniz.'),
 ]
 
 const talepIptalValidationRules = [
-  body('talepId')
+    body('talepId')
     .isUUID()
     .withMessage('Geçerli bir talep giriniz.')
 ]
 
 const talebiKapatValidationRules = [
-  body('talepId')
+    body('talepId')
     .isUUID()
     .withMessage('Geçerli bir talep giriniz.'),
 
-  body('isApproved')
+    body('isApproved')
     .isBoolean().withMessage('Onay durumu geçersiz'),
 
-  body('rating')
+    body('rating')
     .custom((value, { req }) => {
         if (req.body.isApproved === true) {
             if (!Number.isInteger(value) || value < 1 || value > 5) {
@@ -99,12 +92,12 @@ const talebiKapatValidationRules = [
         return true;
     }),
 
-  body('comment')
-      .optional()
-      .trim()
-      .isLength({ max: 1000 }).withMessage('Müşteri yorumu en fazla 1000 karakter olabilir.'),
+    body('comment')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 }).withMessage('Müşteri yorumu en fazla 1000 karakter olabilir.'),
 
-  body('disputeReason')
+    body('disputeReason')
     .custom((value, { req }) => {
         if (req.body.isApproved === false) {
             if (!value || value.trim().length === 0) {
@@ -119,81 +112,81 @@ const talebiKapatValidationRules = [
 ]
 
 const talepOlusturValidationRules = [
-  body('adresId')
+    body('adresId')
     .isUUID()
     .withMessage('Geçerli bir adres giriniz.'),
 
-  body('baslik')
+    body('baslik')
     .trim()
     .notEmpty()
     .withMessage('Başlık boş bırakılamaz.')
     .isLength({ max: 100 })
     .withMessage('Başlık en fazla 100 karakter olabilir.'),
 
-  body('aciklama')
+    body('aciklama')
     .optional()
     .trim()
     .isLength({ max: 1000 })
     .withMessage('Açıklama çok uzun (Maksimum 1000 karakter).'),
 
-  body('alan')
+    body('alan')
     .isInt({ min: 1 })
     .withMessage('Alan (m²) 0\'dan büyük bir sayı olmalıdır.'),
 
-  body('fiyat')
+    body('fiyat')
     .isInt({ min: 1 })
     .withMessage('Fiyat 0\'dan büyük bir değer olmalıdır.'),
 
-  body('petVarMi')
+    body('petVarMi')
     .isBoolean()
     .withMessage('Evcil hayvan bilgisi true veya false olmalıdır.'),
 
-  body('planlananTarih')
+    body('planlananTarih')
     .isISO8601()
     .withMessage('Geçerli bir başlangıç tarihi giriniz (ISO8601 formatında).')
     .toDate()
     .custom((value) => {
-      if (new Date(value) < new Date()) {
-        throw new Error('Başlangıç tarihi geçmiş bir zaman olamaz.');
-      }
-      return true;
+        if (new Date(value) < new Date()) {
+            throw new Error('Başlangıç tarihi geçmiş bir zaman olamaz.');
+        }
+        return true;
     }),
 ]
 
 const kayitOlValidationRules = [
-  body('rol')
+    body('rol')
     .notEmpty()
     .withMessage('Rol boş bırakılamaz.')
     .isIn(['customer', 'cleaner'])
     .withMessage('Geçersiz rol seçimi. Sadece customer veya cleaner olabilir.'),
 
-  body('adSoyad')
+    body('adSoyad')
     .notEmpty()
     .withMessage('Kullanıcı adı boş bırakılamaz.')
     .trim(),
 
-  body('email')
+    body('email')
     .isEmail()
     .withMessage('Geçerli bir e-posta adresi giriniz.')
     .normalizeEmail(),
 
-  body('telefon')
+    body('telefon')
     .notEmpty()
     .isMobilePhone('tr-TR')
     .withMessage('Geçerli bir telefon giriniz.'),
-  
-  body('sifre')
+
+    body('sifre')
     .isLength({ min: 8, max: 18 })
     .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
 ];
 
 const girisYapValidationRules = [
-  body('email')
+    body('email')
     .isEmail()
     .withMessage('Geçerli bir e-posta adresi giriniz.')
     .normalizeEmail(),
 
-  body('sifre')
+    body('sifre')
     .isLength({ min: 8, max: 18 })
     .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
 ];
@@ -203,32 +196,32 @@ const anaValidationRules = [
 ]
 
 const temizlikciProfilValidationRules = [
-  
+
 ]
 
 const adminGirisYapValidationRules = [
-  body('email')
+    body('email')
     .isEmail()
     .withMessage('Geçerli bir e-posta adresi giriniz.')
     .normalizeEmail(),
 
-  body('password')
+    body('password')
     .isLength({ min: 8, max: 18 })
     .withMessage('Şifre en az 8 en fazla 18 karakter olmalıdır.')
 ];
 
 const sikayetOnayValidationRules = [
-  body('jobId')
+    body('jobId')
     .trim()
     .notEmpty()
     .withMessage('İş ID boş bırakılamaz.'),
 
-  body('requestId')
+    body('requestId')
     .trim()
     .notEmpty()
     .withMessage('Talep ID boş bırakılamaz.'),
 
-  body('decision')
+    body('decision')
     .trim()
     .notEmpty()
     .withMessage('Karar  parametresi zorunludur.')
@@ -237,16 +230,16 @@ const sikayetOnayValidationRules = [
 ];
 
 const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  
-  if (errors.isEmpty()) {
-    return next();
-  }
-  
-  return res.status(400).json({
-    success: false,
-    message: "Bilgiler geçersiz!"
-  });
+    const errors = validationResult(req);
+
+    if (errors.isEmpty()) {
+        return next();
+    }
+
+    return res.status(400).json({
+        success: false,
+        message: "Bilgiler geçersiz!"
+    });
 };
 
 module.exports = {
