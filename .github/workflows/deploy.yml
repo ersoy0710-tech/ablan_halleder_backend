@@ -20,7 +20,7 @@ jobs:
           cache: 'npm'
 
       - name: 📦 3. Bağımlılıkları Kur (npm ci)
-        run: npm ci
+        run: npm install
 
       - name: 🔑 3.5. Test İçin Sahte PEM Dosyaları Oluştur
         run: |
