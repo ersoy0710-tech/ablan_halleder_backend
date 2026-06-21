@@ -47,8 +47,10 @@ app.use("/", adminRouter);
 app.get('/{*splat}', (req, res) => { res.redirect('/login') })
 
 var serverPORT = process.env.PORT || 3000;
-app.listen(serverPORT, () => {
-    console.log("server is running on", serverPORT);
-});
+if (require.main === module) {
+    app.listen(serverPORT, () => {
+        console.log("server is running on", serverPORT);
+    });
+}
 
 module.exports = app;
