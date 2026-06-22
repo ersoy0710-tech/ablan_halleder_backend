@@ -6,7 +6,7 @@ const fsExtra = require('fs');
 const { verifyAuthToken } = require("../common/jwt.js")
 
 
-const isler = async (req, res, next) => {
+const isler = async(req, res, next) => {
     try {
         const sorgu = `SELECT S.id talep_id, S.title baslik, S.description aciklama, S.area_sqm alan, S.has_pets hayvan_var_mi, 
                         (S.scheduled_start AT TIME ZONE 'Europe/Istanbul') planlanan_tarih, (S.price)::INTEGER AS fiyat, C.name il, D.name ilce,
@@ -37,10 +37,9 @@ const isler = async (req, res, next) => {
             message: '',
             data: sonuc.rows
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -48,7 +47,7 @@ const isler = async (req, res, next) => {
     }
 }
 
-const aktifIs = async (req, res, next) => {
+const aktifIs = async(req, res, next) => {
     try {
         const userId = req.userId;
 
@@ -93,10 +92,9 @@ const aktifIs = async (req, res, next) => {
             message: '',
             data: sonuc.rows
         });
-    }
-    catch (error) {
+    } catch (error) {
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
@@ -104,7 +102,7 @@ const aktifIs = async (req, res, next) => {
     }
 }
 
-const isiAl = async (req, res, next) => {
+const isiAl = async(req, res, next) => {
     const { talepId } = req.body;
 
     const client = await db.pool.connect();
@@ -126,6 +124,21 @@ const isiAl = async (req, res, next) => {
         }
 
         /* AKTİF İŞİ VARKEN İŞ ALAMASIN */
+        const aktifIsSorgusu = `
+            SELECT id 
+            FROM jobs 
+            WHERE cleaner_id = $1 AND status IN ('assigned', 'in_progress', 'awaiting_approval') 
+            LIMIT 1
+        `;
+        const aktifIsSonuc = await client.query(aktifIsSorgusu, [userId]);
+
+        if (aktifIsSonuc.rows.length > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                success: false,
+                message: 'Zaten devam eden bir işiniz bulunuyor. Yeni bir iş almadan önce mevcut işinizi tamamlamalısınız!',
+            });
+        }
 
         const insertSorgu = `INSERT INTO jobs (request_id, cleaner_id, status, accepted_at)
                              VALUES ($1, $2, 'assigned', NOW())`;
@@ -140,22 +153,20 @@ const isiAl = async (req, res, next) => {
             success: true,
             message: 'İŞ ALINDI',
         });
-    }
-    catch (err) {
+    } catch (err) {
         await client.query('ROLLBACK');
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
         });
-    }
-    finally {
+    } finally {
         client.release();
     }
 }
 
-const isiIptalEt = async (req, res, next) => {
+const isiIptalEt = async(req, res, next) => {
     const client = await db.pool.connect();
 
     try {
@@ -189,27 +200,25 @@ const isiIptalEt = async (req, res, next) => {
             success: true,
             message: 'İŞ İPTAL EDİLDİ',
         });
-    }
-    catch (err) {
+    } catch (err) {
         await client.query('ROLLBACK');
         console.log(err);
-        
+
         res.status(500).json({
             success: false,
             message: 'Hata oluştu!'
         });
-    }
-    finally {
+    } finally {
         client.release();
     }
 }
 
-const gecmisIsler = async (req, res, next) => {
+const gecmisIsler = async(req, res, next) => {
     const userId = req.userId;
 
     try {
         const userQuery = await db.pool.query('SELECT role FROM users WHERE id = $1', [userId]);
-        
+
         if (userQuery.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Kullanıcı bulunamadı.' });
         }
@@ -217,9 +226,9 @@ const gecmisIsler = async (req, res, next) => {
         const userRole = userQuery.rows[0].role;
 
         if (userRole !== 'cleaner') {
-            return res.status(403).json({ 
-                success: false, 
-                message: 'Bu sayfaya sadece temizlikçiler erişebilir.' 
+            return res.status(403).json({
+                success: false,
+                message: 'Bu sayfaya sadece temizlikçiler erişebilir.'
             });
         }
 
@@ -258,7 +267,7 @@ const gecmisIsler = async (req, res, next) => {
     }
 };
 
-const temizligeBasla = async (req, res, next) => {
+const temizligeBasla = async(req, res, next) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({ success: false, message: 'Temizliğe başlamak için temizlik öncesi fotoğrafları zorunludur!' });
     }
@@ -282,11 +291,11 @@ const temizligeBasla = async (req, res, next) => {
 
         if (aktifIsSonuc.rows.length === 0) {
             await client.query('ROLLBACK');
-            
+
             for (const file of req.files) {
                 if (fsExtra.existsSync(file.path)) fsExtra.unlinkSync(file.path);
             }
-            
+
             return res.status(400).json({
                 success: false,
                 message: 'Süreci başlatılabilecek aktif bir işiniz bulunamadı!',
@@ -296,30 +305,30 @@ const temizligeBasla = async (req, res, next) => {
         const isData = aktifIsSonuc.rows[0];
         const jobId = isData.id;
         const talepId = isData.request_id;
-        
+
         // BURA AKTİF EDİLECEK
-        /*const scheduledStart = new Date(isData.scheduled_start);
+        const scheduledStart = new Date(isData.scheduled_start);
         const today = new Date();
 
-        const isSameDay = 
+        const isSameDay =
             today.getFullYear() === scheduledStart.getFullYear() &&
             today.getMonth() === scheduledStart.getMonth() &&
             today.getDate() === scheduledStart.getDate();
 
         if (!isSameDay) {
             await client.query('ROLLBACK');
-            
+
             for (const file of req.files) {
                 if (fsExtra.existsSync(file.path)) fsExtra.unlinkSync(file.path);
             }
-            
+
             const formattedDate = scheduledStart.toLocaleDateString('tr-TR');
 
             return res.status(400).json({
                 success: false,
                 message: `Temizliğe sadece planlanan günde başlayabilirsiniz! (Planlanan Tarih: ${formattedDate})`
             });
-        }*/
+        }
 
         const targetDir = path.join(__dirname, `../uploads/${talepId}/jobs/${jobId}/before`);
         if (!fsExtra.existsSync(targetDir)) {
@@ -360,8 +369,7 @@ const temizligeBasla = async (req, res, next) => {
             success: true,
             message: 'TEMİZLİK SÜRECİ BAŞLADI',
         });
-    }
-    catch (err) {
+    } catch (err) {
         await client.query('ROLLBACK');
         console.log(err);
 
@@ -375,17 +383,16 @@ const temizligeBasla = async (req, res, next) => {
             success: false,
             message: 'Hata oluştu!'
         });
-    }
-    finally {
+    } finally {
         client.release();
     }
 };
 
-const temizligiBitir = async (req, res, next) => {
+const temizligiBitir = async(req, res, next) => {
     if (!req.files || req.files.length === 0) {
-        return res.status(400).json({ 
-            success: false, 
-            message: 'Temizliği bitirmek için temizlik sonras fotoğrafları zorunludur!' 
+        return res.status(400).json({
+            success: false,
+            message: 'Temizliği bitirmek için temizlik sonras fotoğrafları zorunludur!'
         });
     }
 
@@ -401,11 +408,11 @@ const temizligiBitir = async (req, res, next) => {
 
         if (aktifIsSonuc.rows.length === 0) {
             await client.query('ROLLBACK');
-            
+
             for (const file of req.files) {
                 if (fsExtra.existsSync(file.path)) fsExtra.unlinkSync(file.path);
             }
-            
+
             return res.status(400).json({
                 success: false,
                 message: 'Bitirilecek aktif bir işiniz bulunamadı!'
@@ -458,8 +465,7 @@ const temizligiBitir = async (req, res, next) => {
             success: true,
             message: 'TEMİZLİK BAŞARIYLA BİTİRİLDİ',
         });
-    }
-    catch (err) {
+    } catch (err) {
         await client.query('ROLLBACK');
         console.log("Temizliği Bitir Hatası:", err);
 
@@ -473,8 +479,7 @@ const temizligiBitir = async (req, res, next) => {
             success: false,
             message: 'İşlemi tamamlarken bir hata oluştu!'
         });
-    }
-    finally {
+    } finally {
         client.release();
     }
 };
