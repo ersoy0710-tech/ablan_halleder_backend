@@ -298,6 +298,8 @@ describe('Ablan Halleder - Tests (unit / integration / system)', () => {
                 .mockResolvedValueOnce({})
                 // kontrolSorgusu -> published
                 .mockResolvedValueOnce({ rows: [{ status: 'published' }] })
+                // aktifIsSorgusu -> empty
+                .mockResolvedValueOnce({ rows: [] })
                 // insert
                 .mockResolvedValueOnce({})
                 // update
@@ -648,7 +650,7 @@ describe('Ablan Halleder - Tests (unit / integration / system)', () => {
             const client = { query: jest.fn(), release: jest.fn() };
             client.query
                 .mockResolvedValueOnce({}) // BEGIN
-                .mockResolvedValueOnce({ rows: [{ id: 1, request_id: 2 }] }) // job
+                .mockResolvedValueOnce({ rows: [{ id: 1, request_id: 2, scheduled_start: new Date().toISOString() }] }) // job
                 .mockResolvedValueOnce({ rows: [{ yeni_id: 'uuid' }] }) // uuid
                 .mockResolvedValueOnce({}) // insert photo
                 .mockResolvedValueOnce({}) // update job
@@ -667,6 +669,31 @@ describe('Ablan Halleder - Tests (unit / integration / system)', () => {
 
             await isController.temizligeBasla(req, res);
             expect(status).toHaveBeenCalledWith(200);
+        });
+
+        test('temizligeBasla returns 400 when not on scheduled day', async () => {
+            const client = { query: jest.fn(), release: jest.fn() };
+            
+            const pastDate = new Date();
+            pastDate.setDate(pastDate.getDate() - 1);
+
+            client.query
+                .mockResolvedValueOnce({}) // BEGIN
+                .mockResolvedValueOnce({ rows: [{ id: 1, request_id: 2, scheduled_start: pastDate.toISOString() }] }); // job
+            db.pool.connect = jest.fn().mockResolvedValue(client);
+
+            jest.spyOn(fsExtra, 'existsSync').mockReturnValue(true);
+            jest.spyOn(fsExtra, 'unlinkSync').mockImplementation(() => {});
+
+            const req = { userId: 1, files: [{ originalname: 'a.jpg', path: 'tmp1' }] };
+            const json = jest.fn();
+            const status = jest.fn(() => ({ json }));
+            const res = { status };
+
+            await isController.temizligeBasla(req, res);
+            expect(status).toHaveBeenCalledWith(400);
+            expect(json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+            expect(client.release).toHaveBeenCalled();
         });
 
         test('temizligiBitir returns 200 on success', async () => {
