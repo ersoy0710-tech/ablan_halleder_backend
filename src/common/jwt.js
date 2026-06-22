@@ -34,6 +34,7 @@ function verifyAuthToken(authToken) {
 }
 
 module.exports = {
-    generateAuthToken,
-    verifyAuthToken
-}
+        generateAuthToken,
+        verifyAuthToken
+    }
+    /* */
