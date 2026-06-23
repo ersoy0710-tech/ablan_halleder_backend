@@ -242,6 +242,8 @@ const validate = (req, res, next) => {
         return next();
     }
 
+    console.log(errors);
+
     return res.status(400).json({
         success: false,
         message: "Bilgiler geçersiz!"
