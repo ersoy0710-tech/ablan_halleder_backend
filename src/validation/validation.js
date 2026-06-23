@@ -146,8 +146,14 @@ const talepOlusturValidationRules = [
     .withMessage('Geçerli bir başlangıç tarihi giriniz (ISO8601 formatında).')
     .toDate()
     .custom((value) => {
-        if (new Date(value) < new Date()) {
-            throw new Error('Başlangıç tarihi geçmiş bir zaman olamaz.');
+        const selectedDate = new Date(value);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+            throw new Error('Başlangıç tarihi geçmiş bir gün olamaz.');
         }
         return true;
     }),
