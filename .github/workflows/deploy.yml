@@ -70,6 +70,7 @@ jobs:
                 --name ablan-halleder-backend-container \
                 --network host \
                 --restart always \
+                -v /home/${{ secrets.AZURE_USERNAME }}/ablan_halleder_backend/src/uploads:/app/src/uploads \
                 ablan-halleder-backend:latest
                 
             echo "🧹 Azure: Temizlik yapılıyor..."
